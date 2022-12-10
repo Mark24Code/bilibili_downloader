@@ -20,7 +20,7 @@
 2.脚本起到多线程协调任务
 '''
 
-VERSION = "4.0.0"
+VERSION = "4.1.2"
 SCRIPT_FILE_NAME = "bilibili_downloader.rb"
 REPO = "https://github.com/Mark24Code/bilibili_downloader"
 README =  "https://github.com/Mark24Code/bilibili_downloader/blob/main/README.md"
