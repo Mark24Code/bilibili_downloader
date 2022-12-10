@@ -1,155 +1,117 @@
 #!/usr/bin/env ruby
-'''
-这是前期版本
-使用线程工作，但是多线程会造成死锁问题
-排队序列不会自动补充，效率一般。推荐下面的 plus 版本
-----
-下载哔哩哔哩合集 Hack机器人
-source_url 要是合集url保留p参数
-https://www.bilibili.com/video/BV1Wu411B72F?p=
-参数说明：
-  source_url: 合集地址，要保留p参数，例如 https://www.bilibili.com/video/BV1Wu411B72F?p=
-  format_type: 格式 720/1080/default， 具体参考 show_info 返回
-  thread_sleep: 5 一组线程之后休眠时间 秒
-  thread_num: 2, 一次进行的线程数
-  begin: 5, # >=1 开始索引 从1开始
-  total: 1, # >= 1 要下载多少，从1开始
-------
-依赖:
-1. 请提前安装Python3+
-`pip install you-get`
-下载任务依赖 python you-get
-2.脚本起到多线程协调任务
-'''
 
-class Downloader
-  def initialize(opt)
-    @source_url = opt[:source_url]
-    @thread_num = opt[:thread_num]
-    @format_type = opt[:format_type] || 'test'
-    @thread_sleep = opt[:thread_sleep] || 1
+"" "
+Bilibili Ruby多线程下载器
+@Author: mark.zhangyoung@qq.com
+@Date: 2022.05.31
+@License: MIT
+工作要求:
+1.系统安装Python3
+2.安装you-get （pip3 install you-get)
+原理:
+  you-get仅仅只能单线程工作，本脚本使用Ruby3的Ractor技术制造一个多线程无锁队列
+  真正的并行执行you-get任务
+配置说明:
+robot = Robot.new(
+  source_url:'https://www.bilibili.com/video/BV13F411376G?p=1', # 具体目录清淡的一个地址，p=几无所谓
+  format_type: 480, # 格式 480、360、720、default 要根据网页确定
+  workers: 3, # 工作线程数
+  total: 54 # 要下载的资源总数，默认1开始
+)
+使用说名:
+robot.run
+" ""
 
-    @begin = opt[:begin] || 1 # >= 1
-    @total = opt[:total] || 1 # >= 1
-
-    @start_index = @begin - 1
-    @end_index = @start_index + @total
+class DownloadCmd
+  def initialize(url, format_type)
+    @url = url
+    @format_type = format_type || "default"
   end
 
-  def download_worker(task_id)
-    puts "[Thread @#{task_id} is running]"
-    uri = "#{@source_url}#{task_id}"
-    puts "Download Worker@#{task_id},@#{@format_type}"
-
-    __send__("download_#{@format_type}", uri)
+  def format_default
+    "#{@url}"
   end
 
-  def download_1080(url)
-    system("you-get --format=dash-flv "+url)
+  def format_1080
+    "--format=dash-flv #{@url}"
   end
 
-  def download_720(url)
-    system("you-get --format=dash-flv720 "+url)
+  def format_720
+    "--format=dash-flv720 #{@url}"
   end
 
-  def download_480(url)
-    system("you-get --format=dash-flv480 "+url)
+  def format_480
+    "--format=dash-flv480 #{@url}"
   end
 
-  def download_360(url)
-    system("you-get --format=dash-flv360 "+url)
+  def format_360
+    "--format=dash-flv360 #{@url}"
   end
 
-  def download_default(url)
-    system("you-get "+url)
-  end
-
-  def download_test(arg)
-    puts "hello world"
-  end
-
-  def showinfo
-    system("you-get -i "+@source_url)
-  end
-
-  def download
-    grouping_ids_arr = self.grouping
-    # p grouping_ids_arr
-    self.thread_work(grouping_ids_arr, lambda { |task_id| self.download_worker(task_id) })
-  end
-
-  def thread_work(order_group, handler)
-    while order_group
-      current_task_ids = order_group.shift
-      if !current_task_ids
-        break
-      end
-
-      threads_group = []
-      current_task_ids.each do |payload|
-        threads_group << Thread.new do
-          handler.call(payload)
-        end
-      end
-
-      # puts "start task: #{current_task_ids.join(',')}"
-      threads_group.each { |thr| thr.join }
-      # threads_group.map do |thr|
-      #   thr.value
-      # end
-      if @thread_sleep > 0
-        sleep @thread_sleep
-      end
-    end
-  end
-
-  def grouping
-    """
-    @task_pice_group = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15]]
-    """
-    grouping_result = []
-    group_count = @total / @thread_num
-
-    for group_index in (0..group_count-1)
-      group_pices = []
-      for sub_index in (0..@thread_num-1)
-        pice_id = @start_index - 1 + group_index * @thread_num + sub_index + 1
-        # printf("#{pice_id} \t")
-        group_pices.push(pice_id + 1)
-      end
-      # puts ""
-      grouping_result.push(group_pices)
-    end
-
-    if(group_count*@thread_num < @total)
-      group_pices = []
-      for rest_sub_index in ((@start_index + group_count*@thread_num).. @end_index-1)
-        pice_id = rest_sub_index
-        # printf("#{pice_id} \t")
-        group_pices.push(pice_id + 1)
-      end
-      # puts ""
-      grouping_result.push(group_pices)
-    end
-
-    return grouping_result
+  def download_full_cmd
+    args = __send__("format_#{@format_type}")
+    "you-get #{args}"
   end
 end
 
+class Robot
+  def initialize(opt)
+    @source_url = self.split_source_url(opt[:source_url])
+    @format_type = opt[:format_type] || "480"
 
-# 剧集总数
-total = 8
-# 当前第几集开始
-current = 1
+    @queue = Ractor.new do
+      loop do
+        Ractor.yield(Ractor.receive)
+      end
+    end
 
-hacker = Downloader.new(
-  source_url:'https://www.bilibili.com/video/BV1vs41117JH?p=',
+    @worker_count = opt[:workers] || 3
+    @total = opt[:total]
+  end
+
+  def split_source_url(source_url)
+    pattern = /^(https:\/\/www.bilibili.com\/.*?\?p=)(.*?)/
+    result = pattern.match(source_url)
+    if result && result[0]
+      result
+    else
+      throw "URL must be `https://www.bilibili.com/video/<videoId>?p=<orderId>` format."
+    end
+  end
+
+  def hack
+    cmd = DownloadCmd.new(@source_url, @format_type).download_full_cmd
+
+    workers_ractors = (1..@worker_count).map do |worker_id|
+      Ractor.new(@queue, cmd, name: "worker@#{worker_id}") do |queue, cmd|
+        while job_id = queue.take
+          full_cmd = "#{cmd}#{job_id}"
+
+          puts full_cmd
+          system(full_cmd)
+
+          Ractor.yield "Download #{job_id} success"
+        end
+      end
+    end
+
+    job_tasks = (1..@total).to_a
+
+    job_tasks.each do |job_id|
+      @queue.send job_id
+    end
+
+    job_tasks.each {
+      puts Ractor.select(*workers_ractors)
+    }
+  end
+end
+
+robot = Robot.new(
+  source_url: "https://www.bilibili.com/video/BV13F411376G?p=1",
   format_type: 480,
-  thread_sleep: 0,
-
-  thread_num: 3,
-  begin: current, # >=1 
-  total: total - current + 1, # >= 1
+  workers: 3,
+  total: 54,
 )
-# hacker.showinfo
-hacker.download
+
+robot.hack
