@@ -1,26 +1,9 @@
 #!/usr/bin/env ruby
-'''
-----
-下载哔哩哔哩合集
-改进说明:
-1.独立性的多线程
-2.均匀的分发任务模型（cycle mode）
-3.友好的参数，url、range 非常自然易用
-参数说明：
-  url: 合集地址特征是存在 p=1 数字具有递增性，贴完整地址即可
-  format_type: 格式 720/1080/default， 具体参考 show_info 返回
-  sleep: 1 一组线程之后休眠时间 秒
-  thread: 2, 一次进行的线程数
-  range: (1..40) 1到40集；可以是一个range序列或者数组（会用来生成p序列）
-------
-依赖:
-1. 请提前安装Python3+
-`pip install you-get`
-下载任务依赖 python you-get
-2.脚本起到多线程协调任务
-'''
 
-VERSION = "4.1.2"
+AUTHOR = "Mark24"
+EMAIL = "mark.zhangyoung@gmail.com"
+EMAIL_CN = "mark.zhangyoung@qq.com"
+VERSION = "4.1.3"
 SCRIPT_FILE_NAME = "bilibili_downloader.rb"
 REPO = "https://github.com/Mark24Code/bilibili_downloader"
 README =  "https://github.com/Mark24Code/bilibili_downloader/blob/main/README.md"
@@ -144,7 +127,7 @@ end
 
 class Downloader
   def initialize(opt)
-    @uri = opt.fetch(:uri, nil)
+    @url = opt.fetch(:url, nil)
     @format_type = opt.fetch(:format_type, 'default')
   end
 
@@ -157,26 +140,25 @@ class Downloader
   end
 
   def download_1080
-    system("you-get --format=dash-flv " + @uri)
+    system("you-get --format=dash-flv " + @url)
   end
 
   def download_720
-    system("you-get --format=dash-flv720 " + @uri)
+    system("you-get --format=dash-flv720 " + @url)
   end
 
   def download_480
-    system("you-get --format=dash-flv480 " + @uri)
+    system("you-get --format=dash-flv480 " + @url)
   end
 
   def download_360
-    system("you-get --format=dash-flv360 " + @uri)
+    system("you-get --format=dash-flv360 " + @url)
   end
 
   def download_default
-    system("you-get " + @uri)
+    system("you-get " + @url)
   end
 end
-
 
 
 class BiliBiliDownloadHacker
@@ -189,10 +171,8 @@ class BiliBiliDownloadHacker
     @mode = opt.fetch(:mode, :cycle) # normal,cycle
 
     self.check_opts
-    @uri = nil
+    @url = nil
     self.preprocess
-    
-
   end
 
   def start
@@ -201,7 +181,7 @@ class BiliBiliDownloadHacker
 
   def preprocess
     @thread_count = @thread_count > @range.size ? @range.size : @thread_count
-    self.get_clean_uri
+    self.get_clean_url
   end
 
   def add_job_to_queue
@@ -211,9 +191,9 @@ class BiliBiliDownloadHacker
     @range.map do | p_id |
       ws << lambda { 
         sleep @sleep if @sleep
-        target = @uri.clone
+        target = @url.clone
         target.query = "p=#{p_id}"
-        d = Downloader.new(uri: "#{target}", format_type: @format_type)
+        d = Downloader.new(url: "#{target}", format_type: @format_type)
         d.start
         finished << p_id
       }
@@ -222,14 +202,15 @@ class BiliBiliDownloadHacker
     ws.join
     
     self.tail_job
-    puts "--- Report -------"
-    puts "finished: #{finished.length}"
+    puts "====== #{SCRIPT_FILE_NAME} Report ======"
+    puts "Expected: #{@range.size}"
+    puts "Finished: #{finished.length}"
   end
 
-  def get_clean_uri
+  def get_clean_url
     u = URI(@raw_url)
     u.query = nil
-    @uri = u
+    @url = u
   end
 
 
@@ -318,9 +299,12 @@ OptionParser.new do |opts|
 
   opts.on("-v", "--version", "version") do
     puts "Bilibili Downloader v#{VERSION}"
+    puts "Repo: #{REPO}"
     puts ""
-    puts "author: Mark24Code"
-    puts "repo: #{REPO}"
+    puts "Author: #{AUTHOR}"
+    puts "Email: #{EMAIL}"
+    puts "Email(in China): #{EMAIL_CN}"
+    
     exit 0
   end
 end.parse!
