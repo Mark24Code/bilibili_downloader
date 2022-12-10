@@ -3,7 +3,7 @@
 AUTHOR = "Mark24"
 EMAIL = "mark.zhangyoung@gmail.com"
 EMAIL_CN = "mark.zhangyoung@qq.com"
-VERSION = "4.1.3"
+VERSION = "4.2.3"
 SCRIPT_FILE_NAME = "bilibili_downloader.rb"
 REPO = "https://github.com/Mark24Code/bilibili_downloader"
 README =  "https://github.com/Mark24Code/bilibili_downloader/blob/main/README.md"
