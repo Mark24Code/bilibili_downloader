@@ -281,7 +281,7 @@ OptionParser.new do |opts|
     puts "./#{SCRIPT_FILE_NAME} -u #{EXAMPLE_URL} -c 4 -r 1..40"
     puts ""
     puts "2. Ruby from Internet by curl:"
-    puts "ruby -e '$(curl -fsSL #{SCRIPT_STATIC_FILE_URL})' -- <CLI options>"
+    puts "ruby -e \"$(curl -fsSL #{SCRIPT_STATIC_FILE_URL})\" -- <CLI options>"
     puts ""
     puts "e.g. :"
     puts "ruby -e \"$(curl -fsSL #{SCRIPT_STATIC_FILE_URL})\" -- -u #{EXAMPLE_URL} -c 4 -r 1..40"
