@@ -20,8 +20,31 @@
 2.脚本起到多线程协调任务
 '''
 
+VERSION = "4.0.0"
+SCRIPT_FILE_NAME = "bilibili_downloader.rb"
+REPO = "https://github.com/Mark24Code/bilibili_downloader"
+README =  "https://github.com/Mark24Code/bilibili_downloader/blob/main/README.md"
+EXAMPLE_URL = "https://www.bilibili.com/video/BV1Xx41117tr"
+SCRIPT_STATIC_FILE_URL = "https://raw.githubusercontent.com/Mark24Code/bilibili_downloader/main/#{SCRIPT_FILE_NAME}"
+
+require 'optparse'
 require 'uri'
 require 'thread'
+
+module OS
+  def OS.windows?
+    (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+  end
+
+  def OS.mac?
+   (/darwin/ =~ RUBY_PLATFORM) != nil
+  end
+
+  def OS.linux?
+    (/linux/ =~ RUBY_PLATFORM) != nil
+  end
+end
+
 
 class Worker
   attr :name, :group
@@ -226,12 +249,91 @@ class BiliBiliDownloadHacker
   end
 end
 
-hacker = BiliBiliDownloadHacker.new(
-  url: "https://www.bilibili.com/video/BV1Xx41117tr/?spm_id_from=333.337.search-card.all.click&vd_source=b426269b70cf7c5ee688ab3b6b3983e7",
-  format_type: 480,
-  range: (1..40),
-  thread: 10,
-  sleep: 1,
-)
 
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{SCRIPT_FILE_NAME} [options]"
+
+  opts.on("-u URL", "--url URL", "Video source url. Just full video web url which pasted from web browser.") do |t|
+    options[:url] = t
+  end
+  opts.on("-f FORMAT_TYPE", "--format_type FORMAT_TYPE", "Video format type.  e.g. 480/720/1080/default 取决于视频支持，见播放器") do |t|
+    options[:format_type] = t || 'default'
+  end
+
+  opts.on("-t SLEEP", "--time SLEEP", "Sleep seconds between each thread job.") do |t|
+    options[:sleep] = t.to_i || 0
+  end
+
+  opts.on("-c THREAD_COUNT", "--thread_count THREAD_COUNT ", "Thread count to download. Recommand your computer cpu core numbers.") do |t|
+    options[:thread] = t.to_i
+  end
+
+  opts.on("-r RANGE", "--range RANGE ", "Download video range. e.g 1..4 means from 1 to 40, use Ruby `Range` syntax") do |t|
+    options[:range] = instance_eval("(#{t})")
+  end
+
+  opts.on("--example", "Give me a example") do |t|
+    puts "1. Run by local file: "
+    puts "./#{SCRIPT_FILE_NAME} <CLI options>"
+    puts ""
+    puts "e.g. :"
+    puts "./#{SCRIPT_FILE_NAME} -u #{EXAMPLE_URL} -c 4 -r 1..40"
+    puts ""
+    puts "2. Ruby from Internet by curl:"
+    puts "ruby -e '$(curl -fsSL #{SCRIPT_STATIC_FILE_URL})' -- <CLI options>"
+    puts ""
+    puts "e.g. :"
+    puts "ruby -e '$(curl -fsSL #{SCRIPT_STATIC_FILE_URL})' -- -u #{EXAMPLE_URL} -c 4 -r 1..40"
+    return
+  end
+
+  opts.on("--doc", "Document, wiki") do |t|
+    puts README
+    return 
+  end
+
+  opts.on("--preinstall", "Install dependencies library.") do |t|
+    if OS.mac?
+      puts "==== bilibili downloader ===="
+      puts "[install library 1/2] install python3"
+      system("brew install python3")
+      puts "[install library 2/2] install you-get"
+      system("pip3 install you-get")
+    elsif OS.linux?
+      result = `uname -a`
+      if (/debian/ =~ result) != nil
+        puts "==== bilibili downloader ===="
+        puts "[install library 1/2] install python3"
+        system("sudo apt install python3")
+        puts "[install library 2/2] install you-get"
+        system("pip3 install you-get")
+      else
+        puts "Just support Debian Linux auto install. You must install by yourself."
+      end
+    else
+      puts "Not Support Windows. You must install by yourself."
+    end
+  end
+
+  opts.on("-v", "--version", "version") do
+    puts "Bilibili Downloader v#{VERSION}"
+    puts ""
+    puts "author: Mark24Code"
+    puts "repo: #{REPO}"
+    exit 0
+  end
+end.parse!
+
+
+if options.keys.length == 0
+  puts "bilibili_downloader: Opps..."
+  puts ""
+  puts "You give nothing arguments. `./#{SCRIPT_FILE_NAME} --help` may help you."
+  puts "More Details & Wiki:  #{REPO}/blob/main/README.md"
+  return
+end
+
+
+hacker = BiliBiliDownloadHacker.new(options)
 hacker.start
