@@ -23,14 +23,26 @@ Just support  MacOS、Debian Linux
 
 ### 1.2.2 Install by yourself
 
+
 1. Make sure you have `python3` 
+
+MacOS:
 
 `brew install python3`
 
+Debian
+
+`sudo apt install python3`
+
 2. Make sure you have `you-get` 
+
+MacOS:
 
 `pip install you-get`
 
+Debian:
+
+`sudo pip install you-get`
 
 # 2. Run hack script
 
