@@ -285,9 +285,11 @@ OptionParser.new do |opts|
       result = `uname -a`
       if (/debian/ =~ result) != nil
         puts "==== bilibili downloader ===="
-        puts "[install library 1/2] install python3"
+        puts "[install library 1/3] install python3"
         system("sudo apt install python3")
-        puts "[install library 2/2] install you-get"
+        puts "[install library 2/3] install python3-pip"
+        system("sudo apt install python3-pip")
+        puts "[install library 3/3] install you-get"
         system("pip3 install you-get")
       else
         puts "Just support Debian Linux auto install. You must install by yourself."
