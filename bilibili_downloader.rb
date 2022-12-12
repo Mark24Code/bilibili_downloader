@@ -16,15 +16,15 @@ require 'thread'
 
 module OS
   def OS.windows?
-    (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    (/cygwin|mswin|mingw|bccwin|wince|emx/i =~ RUBY_PLATFORM) != nil
   end
 
   def OS.mac?
-   (/darwin/ =~ RUBY_PLATFORM) != nil
+   (/darwin/i =~ RUBY_PLATFORM) != nil
   end
 
   def OS.linux?
-    (/linux/ =~ RUBY_PLATFORM) != nil
+    (/linux/i =~ RUBY_PLATFORM) != nil
   end
 end
 
@@ -173,6 +173,7 @@ class BiliBiliDownloadHacker
     self.check_opts
     @url = nil
     self.preprocess
+    
   end
 
   def start
