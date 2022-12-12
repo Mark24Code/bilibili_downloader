@@ -277,10 +277,8 @@ OptionParser.new do |opts|
   opts.on("--preinstall", "Install dependencies library.") do |t|
     if OS.mac?
       puts "==== bilibili downloader ===="
-      puts "[install library 1/2] install python3"
-      system("brew install python3")
-      puts "[install library 2/2] install you-get"
-      system("pip3 install you-get")
+      puts "[install lib 1/1] install you-get"
+      system("brew install you-get")
     elsif OS.linux?
       result = `uname -a`
       if (/debian/ =~ result) != nil
@@ -290,7 +288,7 @@ OptionParser.new do |opts|
         puts "[install library 2/3] install python3-pip"
         system("sudo apt install python3-pip")
         puts "[install library 3/3] install you-get"
-        system("pip3 install you-get")
+        system("sudo pip3 install you-get")
       else
         puts "Just support Debian Linux auto install. You must install by yourself."
       end
