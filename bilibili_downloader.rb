@@ -295,6 +295,7 @@ OptionParser.new do |opts|
     else
       puts "Not Support Windows. You must install by yourself."
     end
+    return
   end
 
   opts.on("-v", "--version", "version") do
