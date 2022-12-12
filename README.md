@@ -13,6 +13,18 @@ Debian Linux:
 
 `sudo apt install ruby`
 
+### 1.2 Make sure you have `ffmpeg`
+
+[ffmpeg homepage](https://ffmpeg.org/download.html)
+
+MacOS:
+
+`brew install ffmpeg`
+
+Debian
+
+`sudo apt install ffmpeg`
+
 ## 1.2 Other Dependency
 
 ### 1.2.1 Auto install 
