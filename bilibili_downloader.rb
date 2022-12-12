@@ -281,7 +281,7 @@ OptionParser.new do |opts|
       system("brew install you-get")
     elsif OS.linux?
       result = `uname -a`
-      if (/debian/ =~ result) != nil
+      if (/debian/i =~ result) != nil
         puts "==== bilibili downloader ===="
         puts "[install library 1/3] install python3"
         system("sudo apt install python3")
